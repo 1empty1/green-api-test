@@ -1,61 +1,82 @@
-# Effective Mobile Test Task
+# GREEN-API Test Interface
 
-Веб-приложение с nginx и Python backend в Docker.
+Тестовое задание на должность DevOps разработчик.
 
-## Как это работает
+HTML-страница для тестирования методов GREEN-API (WhatsApp API).
 
-```
-Пользователь → Nginx (порт 80) → Backend (порт 8080)
-```
+## Описание
 
-Nginx принимает запросы и проксирует их на Python-сервер. Backend доступен только внутри docker-сети.
+Веб-интерфейс для работы с GREEN-API, позволяющий:
+- Получать настройки инстанса (getSettings)
+- Проверять состояние инстанса (getStateInstance)
+- Отправлять текстовые сообщения (sendMessage)
+- Отправлять файлы по URL (sendFileByUrl)
 
 ## Технологии
 
-- Docker & Docker Compose
-- Python 3.11 (http.server)
-- Nginx 1.25 (Alpine)
+- HTML5
+- CSS3
+- JavaScript (Vanilla JS)
+- GREEN-API REST API
 
-## Запуск
+## Установка и запуск
 
-Требования: Docker и Docker Compose
-
+1. Клонировать репозиторий:
 ```bash
-docker-compose up -d --build
+git clone https://github.com/YOUR_USERNAME/green-api-test.git
+cd green-api-test
 ```
 
-## Проверка
+2. Открыть `index.html` в браузере
 
+Или запустить локальный сервер:
 ```bash
-curl http://localhost
+python -m http.server 8000
 ```
 
-Должно вернуть: `Hello from Effective Mobile!`
+Затем открыть: http://localhost:8000
 
-Или просто открой http://localhost в браузере.
+## Использование
 
-## Структура
+1. Зарегистрироваться на https://console.green-api.com/
+2. Создать новый инстанс (бесплатный тариф Developer)
+3. Отсканировать QR-код для авторизации WhatsApp
+4. Скопировать `idInstance` и `apiTokenInstance`
+5. Вставить учетные данные на странице
+6. Нажать кнопки для тестирования методов API
+
+### Формат chatId
+
+- Личный чат: `79876543210@c.us`
+- Групповой чат: `79876543210-1581234048@g.us`
+
+## Структура проекта
 
 ```
-├── backend/
-│   ├── Dockerfile
-│   └── app.py
-├── nginx/
-│   └── nginx.conf
-├── docker-compose.yml
-└── README.md
+.
+├── index.html          # Основной файл приложения
+└── README.md          # Документация
 ```
 
-## Остановка
+## API Endpoints
 
-```bash
-docker-compose down
-```
+- `GET /waInstance{idInstance}/getSettings/{apiTokenInstance}`
+- `GET /waInstance{idInstance}/getStateInstance/{apiTokenInstance}`
+- `POST /waInstance{idInstance}/sendMessage/{apiTokenInstance}`
+- `POST /waInstance{idInstance}/sendFileByUrl/{apiTokenInstance}`
 
-## Что реализовано
+## Документация GREEN-API
 
-- Backend на Python (http.server) слушает порт 8080
-- Nginx проксирует запросы с порта 80
-- Контейнеры в отдельной docker-сети
-- Backend запускается не от root
-- Healthcheck'и для мониторинга состояния
+- [Официальная документация](https://green-api.com/docs/api/)
+- [GetSettings](https://green-api.com/docs/api/account/GetSettings/)
+- [GetStateInstance](https://green-api.com/docs/api/account/GetStateInstance/)
+- [SendMessage](https://green-api.com/docs/api/sending/SendMessage/)
+- [SendFileByUrl](https://green-api.com/docs/api/sending/SendFileByUrl/)
+
+## Автор
+
+Тестовое задание выполнено для GREEN-API
+
+## Лицензия
+
+MIT

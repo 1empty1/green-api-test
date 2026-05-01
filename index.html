@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GREEN-API Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #25D366;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #555;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .button-group {
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: #25D366;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #0088cc;
+            color: white;
+        }
+
+        .btn-info {
+            background-color: #5bc0de;
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: #f0ad4e;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .response-box {
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 150px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #25D366;
+        }
+
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>GREEN-API Test Interface</h1>
+
+    <div class="section">
+        <h2>Параметры подключения</h2>
+        <label for="idInstance">idInstance:</label>
+        <input type="text" id="idInstance" placeholder="Введите idInstance">
+        
+        <label for="apiTokenInstance">apiTokenInstance:</label>
+        <input type="text" id="apiTokenInstance" placeholder="Введите apiTokenInstance">
+    </div>
+
+    <div class="section">
+        <h2>Параметры для отправки</h2>
+        <label for="chatId">chatId (номер с @c.us):</label>
+        <input type="text" id="chatId" placeholder="79876543210@c.us" value="79876543210@c.us">
+        
+        <label for="message">Сообщение:</label>
+        <textarea id="message" rows="3" placeholder="Введите текст сообщения"></textarea>
+        
+        <label for="fileUrl">URL файла:</label>
+        <input type="text" id="fileUrl" placeholder="https://example.com/file.jpg">
+        
+        <label for="fileName">Имя файла:</label>
+        <input type="text" id="fileName" placeholder="file.jpg">
+    </div>
+
+    <div class="section">
+        <h2>Методы API</h2>
+        <div class="button-group">
+            <button class="btn-primary" onclick="getSettings()">getSettings</button>
+            <button class="btn-secondary" onclick="getStateInstance()">getStateInstance</button>
+            <button class="btn-info" onclick="sendMessage()">sendMessage</button>
+            <button class="btn-warning" onclick="sendFileByUrl()">sendFileByUrl</button>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">Загрузка...</div>
+
+    <div class="section">
+        <h2>Ответ метода (только для чтения)</h2>
+        <div class="response-box" id="responseBox"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api.green-api.com';
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function displayResponse(method, response, isError = false) {
+            const responseBox = document.getElementById('responseBox');
+            const timestamp = new Date().toLocaleString('ru-RU');
+            
+            let output = `[${timestamp}] Метод: ${method}\n`;
+            output += '----------------------------------------\n';
+            
+            if (isError) {
+                output += 'ОШИБКА:\n';
+            } else {
+                output += 'Результат:\n';
+            }
+            
+            output += JSON.stringify(response, null, 2);
+            output += '\n\n';
+            
+            responseBox.textContent = output + responseBox.textContent;
+        }
+
+        function getCredentials() {
+            const idInstance = document.getElementById('idInstance').value.trim();
+            const apiTokenInstance = document.getElementById('apiTokenInstance').value.trim();
+            
+            if (!idInstance || !apiTokenInstance) {
+                alert('Заполните idInstance и apiTokenInstance');
+                return null;
+            }
+            
+            return { idInstance, apiTokenInstance };
+        }
+
+        async function getSettings() {
+            const credentials = getCredentials();
+            if (!credentials) return;
+            
+            const { idInstance, apiTokenInstance } = credentials;
+            const url = `${API_URL}/waInstance${idInstance}/getSettings/${apiTokenInstance}`;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'GET'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResponse('getSettings', data);
+                } else {
+                    displayResponse('getSettings', data, true);
+                }
+            } catch (error) {
+                displayResponse('getSettings', { error: error.message }, true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function getStateInstance() {
+            const credentials = getCredentials();
+            if (!credentials) return;
+            
+            const { idInstance, apiTokenInstance } = credentials;
+            const url = `${API_URL}/waInstance${idInstance}/getStateInstance/${apiTokenInstance}`;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'GET'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResponse('getStateInstance', data);
+                } else {
+                    displayResponse('getStateInstance', data, true);
+                }
+            } catch (error) {
+                displayResponse('getStateInstance', { error: error.message }, true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function sendMessage() {
+            const credentials = getCredentials();
+            if (!credentials) return;
+            
+            const chatId = document.getElementById('chatId').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!chatId || !message) {
+                alert('Заполните chatId и сообщение');
+                return;
+            }
+            
+            const { idInstance, apiTokenInstance } = credentials;
+            const url = `${API_URL}/waInstance${idInstance}/sendMessage/${apiTokenInstance}`;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chatId: chatId,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResponse('sendMessage', data);
+                } else {
+                    displayResponse('sendMessage', data, true);
+                }
+            } catch (error) {
+                displayResponse('sendMessage', { error: error.message }, true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function sendFileByUrl() {
+            const credentials = getCredentials();
+            if (!credentials) return;
+            
+            const chatId = document.getElementById('chatId').value.trim();
+            const fileUrl = document.getElementById('fileUrl').value.trim();
+            const fileName = document.getElementById('fileName').value.trim();
+            
+            if (!chatId || !fileUrl || !fileName) {
+                alert('Заполните chatId, URL файла и имя файла');
+                return;
+            }
+            
+            const { idInstance, apiTokenInstance } = credentials;
+            const url = `${API_URL}/waInstance${idInstance}/sendFileByUrl/${apiTokenInstance}`;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chatId: chatId,
+                        urlFile: fileUrl,
+                        fileName: fileName,
+                        caption: document.getElementById('message').value.trim() || ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResponse('sendFileByUrl', data);
+                } else {
+                    displayResponse('sendFileByUrl', data, true);
+                }
+            } catch (error) {
+                displayResponse('sendFileByUrl', { error: error.message }, true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Сохранение credentials в localStorage
+        document.getElementById('idInstance').addEventListener('change', function() {
+            localStorage.setItem('green_api_idInstance', this.value);
+        });
+
+        document.getElementById('apiTokenInstance').addEventListener('change', function() {
+            localStorage.setItem('green_api_apiTokenInstance', this.value);
+        });
+
+        // Загрузка сохраненных credentials
+        window.addEventListener('load', function() {
+            const savedIdInstance = localStorage.getItem('green_api_idInstance');
+            const savedApiToken = localStorage.getItem('green_api_apiTokenInstance');
+            
+            if (savedIdInstance) {
+                document.getElementById('idInstance').value = savedIdInstance;
+            }
+            if (savedApiToken) {
+                document.getElementById('apiTokenInstance').value = savedApiToken;
+            }
+        });
+    </script>
+</body>
+</html>
